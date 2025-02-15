@@ -1,0 +1,52 @@
+---
+name: Bump Golang version
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestGoVersion:
+    name: Get latest Golang version
+    kind: golang
+
+conditions:
+  checkForDockerImage:
+    name: "Check for a Docker image golang:<versions> used by the Makefile"
+    kind: dockerimage
+    disablesourceinput: true
+    spec:
+      architectures:
+        - amd64
+        - arm64
+      image: golang
+      tag: '{{ source "latestGoVersion" }}'
+
+targets:
+  updateDockerfile:
+    name: Bump Golang version to {{ source `latestGoVersion` }}
+    kind: dockerfile
+    spec:
+      file: Dockerfile
+      instruction:
+        keyword: "FROM"
+        matcher: "golang"
+    scmid: default
+
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    title: Bump Golang version to {{ source "latestGoVersion" }}
+    spec:
+      labels:
+        - dependencies
+        - golang

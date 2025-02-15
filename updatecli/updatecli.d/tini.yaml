@@ -1,4 +1,5 @@
-title: "Bump tini version"
+---
+name: "Bump tini version"
 
 scms:
   default:
@@ -13,16 +14,14 @@ scms:
       branch: "{{ .github.branch }}"
 
 sources:
-  latestRelease:
+  lastVersion:
     name: Get Latest tini release version
-    kind: githubRelease
+    kind: githubrelease
     spec:
       owner: "krallin"
       repository: "tini"
       token: "{{ requiredEnv .github.token }}"
       username: "{{ .github.username }}"
-
-# no need for condition to check if the docker image is published as we're downloading tini from github in the Dockerfile
 
 targets:
   updateReleaseInDockerfile:
@@ -33,14 +32,13 @@ targets:
       instruction:
         keyword: "ARG"
         matcher: "tini_version"
-    scmID: default
+    scmid: default
 
-pullrequests:
+actions:
   default:
-    kind: github
-    scmID: default
-    targets:
-      - updateReleaseInDockerfile
+    kind: github/pullrequest
+    title: Bump tini version to {{ source `lastVersion` }}
+    scmid: default
     spec:
       labels:
         - dependencies

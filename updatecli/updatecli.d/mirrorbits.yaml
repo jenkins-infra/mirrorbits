@@ -1,5 +1,5 @@
 ---
-title: "Bump mirrorbits version"
+name: "Bump mirrorbits version"
 
 scms:
   default:
@@ -16,12 +16,18 @@ scms:
 sources:
   latestRelease:
     name: Get latest mirrorbits release version
-    kind: githubRelease
+    ## Since https://github.com/jenkins-infra/docker-mirrorbits/pull/18, we do not use a fixed mirrorbits tags but
+    ## a custom reference to allow us building for arm64, until we have a new release (https://github.com/etix/mirrorbits/issues/179).
+    # kind: githubrelease
+    # spec:
+    #   owner: "etix"
+    #   repository: "mirrorbits"
+    #   token: "{{ requiredEnv .github.token }}"
+    #   username: "{{ .github.username }}"
+    kind: shell
     spec:
-      owner: "etix"
-      repository: "mirrorbits"
-      token: "{{ requiredEnv .github.token }}"
-      username: "{{ .github.username }}"
+      command: echo '955a8b2e1aacea1cae06396a64afbb531ceb36d4'
+
 # no need for condition to check if the docker image is published as we're downloading mirrorbits from github in the Dockerfile
 
 targets:
@@ -33,14 +39,13 @@ targets:
       instruction:
         keyword: "ARG"
         matcher: "mirrorbits_version"
-    scmID: default
+    scmid: default
 
-pullrequests:
+actions:
   default:
-    kind: github
-    scmID: default
-    targets:
-      - updateReleaseInDockerfile
+    kind: github/pullrequest
+    title: Bump mirrorbits version to {{ source `latestRelease` }}
+    scmid: default
     spec:
       labels:
         - dependencies
